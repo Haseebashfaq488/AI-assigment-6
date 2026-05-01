@@ -1,0 +1,9 @@
+node_modules
+.vercel
+.git
+.gitignore
+dist
+build
+.env
+.env.*
+README.md
