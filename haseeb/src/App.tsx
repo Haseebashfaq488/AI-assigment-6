@@ -11,7 +11,7 @@ interface Cell {
   isSafe: boolean;
 }
 
-const WumpusWorld: React.FC = () => {
+const App: React.FC = () => {
   const [rows, setRows] = useState<number>(4);
   const [cols, setCols] = useState<number>(4);
   const [grid, setGrid] = useState<Cell[][]>([]);
@@ -43,7 +43,7 @@ const WumpusWorld: React.FC = () => {
       }))
     );
 
-    // Place Wumpus
+    // Place Wumpus (not at start)
     let wRow = Math.floor(Math.random() * rows);
     let wCol = Math.floor(Math.random() * cols);
     while (wRow === 0 && wCol === 0) {
@@ -52,7 +52,7 @@ const WumpusWorld: React.FC = () => {
     }
     newGrid[wRow][wCol].hasWumpus = true;
 
-    // Place Pits
+    // Place 3–5 Pits
     const numPits = Math.floor(Math.random() * 3) + 3;
     for (let i = 0; i < numPits; i++) {
       let pRow = Math.floor(Math.random() * rows);
@@ -66,7 +66,6 @@ const WumpusWorld: React.FC = () => {
       `~${getVar('W', 0, 0)}`,
     ];
 
-    // Add breeze and stench rules
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const neighbors = getNeighbors(r, c);
@@ -119,14 +118,13 @@ const WumpusWorld: React.FC = () => {
     const targetP = getVar('P', targetRow, targetCol);
     const targetW = getVar('W', targetRow, targetCol);
 
-    // Simple simulation of inference (for demo)
     if (kb.some(clause => clause === `~${targetP}` || clause === `~${targetW}`)) {
       setInferenceSteps(prev => prev + 12);
       return true;
     }
 
     setInferenceSteps(prev => prev + 12);
-    return true; // For demo, we allow movement (you can improve this later)
+    return true;
   };
 
   const moveAgent = (newRow: number, newCol: number) => {
@@ -154,44 +152,46 @@ const WumpusWorld: React.FC = () => {
     setMessage(`✅ Moved safely to (${newRow + 1}, ${newCol + 1})`);
   };
 
-  const getCellClass = (cell: Cell, isAgent: boolean): string => {
-    if (isAgent) return 'agent';
-    if (cell.visited && (cell.hasPit || cell.hasWumpus)) return 'danger';
-    if (cell.visited && cell.isSafe) return 'safe-visited';
-    if (cell.visited) return 'visited';
-    return 'unknown';
-  };
+ 
 
   return (
-    <div className="container">
-      <h1>Dynamic Wumpus Logic Agent</h1>
-      <p className="subtitle">Propositional Logic + Resolution Refutation</p>
+  <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="max-w-6xl mx-auto">
 
-      <div className="controls">
-        <div className="input-group">
-          <label>Rows:</label>
-          <input
-            type="number"
-            value={rows}
-            onChange={(e) => setRows(Math.max(3, Math.min(8, Number(e.target.value))))}
-          />
-        </div>
-        <div className="input-group">
-          <label>Columns:</label>
-          <input
-            type="number"
-            value={cols}
-            onChange={(e) => setCols(Math.max(3, Math.min(8, Number(e.target.value))))}
-          />
-        </div>
-        <button onClick={initializeGame}>New Game</button>
+      <h1 className="text-4xl font-bold text-center mb-8">
+        Dynamic Wumpus Logic Agent
+      </h1>
+
+      {/* Controls */}
+      <div className="flex flex-wrap gap-4 justify-center mb-10">
+        <input
+          type="number"
+          value={rows}
+          onChange={(e) => setRows(Math.max(3, Math.min(8, Number(e.target.value))))}
+          className="bg-zinc-900 border border-zinc-700 rounded px-4 py-2 w-24 text-center"
+        />
+
+        <input
+          type="number"
+          value={cols}
+          onChange={(e) => setCols(Math.max(3, Math.min(8, Number(e.target.value))))}
+          className="bg-zinc-900 border border-zinc-700 rounded px-4 py-2 w-24 text-center"
+        />
+
+        <button
+          onClick={initializeGame}
+          className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg font-semibold"
+        >
+          New Game
+        </button>
       </div>
 
-      <div className="main">
-        <div className="game-area">
-          <h2>Wumpus World</h2>
+      <div className="flex flex-col lg:flex-row gap-8">
+
+        {/* GRID */}
+        <div className="flex-1 flex justify-center">
           <div
-            className="grid"
+            className="grid border-2 border-zinc-700"
             style={{
               gridTemplateColumns: `repeat(${cols}, 80px)`,
             }}
@@ -199,16 +199,31 @@ const WumpusWorld: React.FC = () => {
             {grid.map((row, r) =>
               row.map((cell, c) => {
                 const isAgentHere = agentPos.row === r && agentPos.col === c;
+
                 return (
                   <div
                     key={`${r}-${c}`}
-                    className={`cell ${getCellClass(cell, isAgentHere)}`}
                     onClick={() => moveAgent(r, c)}
+                    className={`
+                      w-20 h-20
+                      flex items-center justify-center
+                      border border-zinc-700
+                      cursor-pointer
+                      transition
+                      hover:bg-zinc-800
+                      ${isAgentHere ? "bg-yellow-400 text-black" : ""}
+                      ${cell.visited && cell.isSafe ? "bg-green-700" : ""}
+                      ${cell.visited && (cell.hasPit || cell.hasWumpus) ? "bg-red-700" : ""}
+                    `}
                   >
-                    {isAgentHere && '🤖'}
-                    {!isAgentHere && cell.visited && cell.hasWumpus && '👹'}
-                    {!isAgentHere && cell.visited && cell.hasPit && '🕳️'}
-                    <span className="coord">({r + 1},{c + 1})</span>
+                    <div className="text-center text-sm">
+                      {isAgentHere && "🤖"}
+                      {!isAgentHere && cell.visited && cell.hasWumpus && "👹"}
+                      {!isAgentHere && cell.visited && cell.hasPit && "🕳️"}
+                      <div className="text-[10px] text-zinc-300 mt-1">
+                        ({r + 1},{c + 1})
+                      </div>
+                    </div>
                   </div>
                 );
               })
@@ -216,252 +231,44 @@ const WumpusWorld: React.FC = () => {
           </div>
         </div>
 
-        <div className="sidebar">
-          <div className="card">
-            <h3>Agent Status</h3>
-            <p>Position: <strong>({agentPos.row + 1}, {agentPos.col + 1})</strong></p>
-            <p>Inference Steps: <strong className="steps">{inferenceSteps}</strong></p>
+        {/* SIDEBAR */}
+        <div className="w-full lg:w-80 space-y-6">
+
+          <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-700">
+            <h3 className="text-lg font-semibold mb-2">Agent</h3>
+            <p>({agentPos.row + 1}, {agentPos.col + 1})</p>
+            <p className="mt-2 text-yellow-400">
+              Steps: {inferenceSteps}
+            </p>
           </div>
 
-          <div className="card">
-            <h3>Current Percepts</h3>
-            <div className="percepts">
-              {percepts.length === 0 ? (
-                <p className="no-percept">No percepts detected...</p>
-              ) : (
-                percepts.map((p, i) => (
-                  <div key={i} className="percept">{p}</div>
-                ))
-              )}
-            </div>
+          <div className="bg-zinc-900 p-5 rounded-xl border border-zinc-700">
+            <h3 className="text-lg font-semibold mb-2">Percepts</h3>
+            {percepts.length === 0 ? (
+              <p className="text-zinc-500 text-sm">None</p>
+            ) : (
+              <div className="flex gap-2 flex-wrap">
+                {percepts.map((p, i) => (
+                  <span key={i} className="bg-red-600 px-3 py-1 rounded-full text-xs">
+                    {p}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="card">
-            <h3>Legend</h3>
-            <div className="legend">
-              <div className="legend-item"><span className="legend-color agent"></span> Agent (🤖)</div>
-              <div className="legend-item"><span className="legend-color safe"></span> Safe Visited</div>
-              <div className="legend-item"><span className="legend-color unknown"></span> Unknown Cell</div>
-              <div className="legend-item"><span className="legend-color danger"></span> Pit / Wumpus</div>
-            </div>
-          </div>
         </div>
       </div>
 
       {message && (
-        <div className={`message ${message.includes('Game Over') ? 'error' : 'success'}`}>
+        <div className="mt-6 text-center p-4 border border-zinc-700 rounded-lg">
           {message}
         </div>
       )}
 
-      <div className="footer">
-        Click on adjacent cells to move • Knowledge-Based Agent using Propositional Logic
-      </div>
-
-      <style jsx>{`
-        .container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 20px;
-          font-family: 'Segoe UI', sans-serif;
-          background-color: #0a0a0a;
-          color: #eee;
-          min-height: 100vh;
-        }
-
-        h1 {
-          text-align: center;
-          color: #fff;
-          margin-bottom: 8px;
-        }
-
-        .subtitle {
-          text-align: center;
-          color: #aaa;
-          margin-bottom: 30px;
-        }
-
-        .controls {
-          display: flex;
-          gap: 15px;
-          justify-content: center;
-          margin-bottom: 30px;
-          flex-wrap: wrap;
-        }
-
-        .input-group {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .input-group label {
-          color: #ccc;
-        }
-
-        .input-group input {
-          padding: 8px 12px;
-          width: 80px;
-          background: #1e1e1e;
-          border: 1px solid #444;
-          color: white;
-          border-radius: 6px;
-        }
-
-        button {
-          padding: 12px 24px;
-          background: #0066ff;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-size: 1.1rem;
-        }
-
-        button:hover {
-          background: #3388ff;
-        }
-
-        .main {
-          display: flex;
-          gap: 30px;
-          flex-wrap: wrap;
-        }
-
-        .game-area {
-          flex: 2;
-          background: #1a1a1a;
-          padding: 25px;
-          border-radius: 12px;
-        }
-
-        .grid {
-          display: grid;
-          gap: 8px;
-          justify-content: center;
-          margin: 20px auto;
-        }
-
-        .cell {
-          width: 80px;
-          height: 80px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2.4rem;
-          border-radius: 10px;
-          cursor: pointer;
-          position: relative;
-          transition: all 0.25s ease;
-          border: 2px solid #333;
-        }
-
-        .cell:hover {
-          transform: scale(1.08);
-          z-index: 10;
-        }
-
-        .agent { background-color: #f4b400; color: #000; border-color: #ffeb3b; box-shadow: 0 0 15px #f4b400; }
-        .safe-visited { background-color: #2e7d32; color: white; }
-        .visited { background-color: #4caf50; color: white; }
-        .danger { background-color: #c62828; color: white; border-color: #e53935; }
-        .unknown { background-color: #424242; color: #ddd; }
-
-        .coord {
-          position: absolute;
-          bottom: 6px;
-          right: 8px;
-          font-size: 0.75rem;
-          opacity: 0.7;
-        }
-
-        .sidebar {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .card {
-          background: #1a1a1a;
-          padding: 20px;
-          border-radius: 12px;
-        }
-
-        .percepts {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .percept {
-          background: #d32f2f;
-          color: white;
-          padding: 8px 16px;
-          border-radius: 20px;
-          font-weight: bold;
-        }
-
-        .no-percept {
-          color: #888;
-          font-style: italic;
-        }
-
-        .steps {
-          color: #ffeb3b;
-          font-size: 1.2rem;
-        }
-
-        .legend {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .legend-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .legend-color {
-          width: 28px;
-          height: 28px;
-          border-radius: 6px;
-        }
-
-        .legend-color.agent { background: #f4b400; }
-        .legend-color.safe { background: #2e7d32; }
-        .legend-color.unknown { background: #424242; }
-        .legend-color.danger { background: #c62828; }
-
-        .message {
-          margin-top: 25px;
-          padding: 16px 20px;
-          border-radius: 8px;
-          font-size: 1.1rem;
-          text-align: center;
-        }
-
-        .message.success {
-          background: #1b5e20;
-          color: #a5d6a7;
-        }
-
-        .message.error {
-          background: #b71c1c;
-          color: #ffcdd2;
-        }
-
-        .footer {
-          text-align: center;
-          margin-top: 40px;
-          color: #666;
-          font-size: 0.95rem;
-        }
-      `}</style>
     </div>
-  );
+  </div>
+);
 };
 
-export default WumpusWorld;
+export default App;
