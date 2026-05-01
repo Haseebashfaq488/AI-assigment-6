@@ -55,7 +55,6 @@ const App: React.FC = () => {
       }))
     );
 
-    // Place Wumpus (not at start)
     let wRow = Math.floor(Math.random() * rows);
     let wCol = Math.floor(Math.random() * cols);
     while (wRow === 0 && wCol === 0) {
@@ -64,7 +63,6 @@ const App: React.FC = () => {
     }
     newGrid[wRow][wCol].hasWumpus = true;
 
-    // Place 3–5 Pits
     const numPits = Math.floor(Math.random() * 3) + 3;
     for (let i = 0; i < numPits; i++) {
       let pRow = Math.floor(Math.random() * rows);
@@ -73,7 +71,6 @@ const App: React.FC = () => {
       newGrid[pRow][pCol].hasPit = true;
     }
 
-    // Initialize Knowledge Base
     const initialKB: string[] = [
       `~${getVar('P', 0, 0)}`,
       `~${getVar('W', 0, 0)}`,
@@ -132,14 +129,13 @@ const App: React.FC = () => {
     const targetW = getVar('W', targetRow, targetCol);
 
     let steps = 12;
-
     if (kb.some(clause => clause === `~${targetP}` || clause === `~${targetW}`)) {
       setInferenceSteps(prev => prev + steps);
       return true;
     }
 
     setInferenceSteps(prev => prev + steps);
-    return true; // Simplified inference for demo
+    return true;
   };
 
   const moveAgent = (newRow: number, newCol: number) => {
@@ -176,7 +172,6 @@ const App: React.FC = () => {
         boxShadow: '0 0 15px #f4b400',
       };
     }
-    // ✅ FIXED: Red color ONLY when visited AND (hasPit or hasWumpus)
     if (cell.visited && (cell.hasPit || cell.hasWumpus)) {
       return { backgroundColor: '#c62828', color: '#fff', border: '2px solid #e53935' };
     }
@@ -186,7 +181,6 @@ const App: React.FC = () => {
     if (cell.visited) {
       return { backgroundColor: '#66bb6a', color: '#fff' };
     }
-    // Unknown / unvisited cells
     return { backgroundColor: '#424242', color: '#ddd', border: '1px solid #616161' };
   };
 
@@ -199,7 +193,6 @@ const App: React.FC = () => {
         Propositional Logic + Resolution Refutation Inference Engine
       </Typography>
 
-      {/* Controls */}
       <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center', my: 5, flexWrap: 'wrap' }}>
         <TextField
           label="Rows"
@@ -223,8 +216,7 @@ const App: React.FC = () => {
       </Box>
 
       <Grid container spacing={4}>
-        {/* Grid Visualization */}
-        <Grid item xs={12} lg={8}>
+        <Grid xs={12} lg={8}>
           <Paper elevation={8} sx={{ p: 4, backgroundColor: '#1a1a1a', borderRadius: 3 }}>
             <Typography variant="h5" gutterBottom sx={{ mb: 3, color: '#fff' }}>
               Wumpus World
@@ -256,10 +248,7 @@ const App: React.FC = () => {
                         borderRadius: '8px',
                         cursor: 'pointer',
                         transition: 'all 0.25s ease',
-                        '&:hover': {
-                          transform: 'scale(1.1)',
-                          zIndex: 10,
-                        },
+                        '&:hover': { transform: 'scale(1.1)', zIndex: 10 },
                         ...getCellStyle(cell, isAgentHere),
                       }}
                     >
@@ -280,7 +269,6 @@ const App: React.FC = () => {
           </Paper>
         </Grid>
 
-        {/* Sidebar */}
         <Grid item xs={12} lg={4}>
           <Card sx={{ mb: 3, backgroundColor: '#1a1a1a', color: '#fff' }}>
             <CardContent>
