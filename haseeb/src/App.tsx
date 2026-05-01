@@ -133,7 +133,6 @@ const App: React.FC = () => {
 
     let steps = 12;
 
-    // If KB proves it's not a pit or wumpus
     if (kb.some(clause => clause === `~${targetP}` || clause === `~${targetW}`)) {
       setInferenceSteps(prev => prev + steps);
       return true;
@@ -177,7 +176,8 @@ const App: React.FC = () => {
         boxShadow: '0 0 15px #f4b400',
       };
     }
-    if (cell.hasPit || cell.hasWumpus) {
+    // ✅ FIXED: Red color ONLY when visited AND (hasPit or hasWumpus)
+    if (cell.visited && (cell.hasPit || cell.hasWumpus)) {
       return { backgroundColor: '#c62828', color: '#fff', border: '2px solid #e53935' };
     }
     if (cell.visited && cell.isSafe) {
@@ -186,6 +186,7 @@ const App: React.FC = () => {
     if (cell.visited) {
       return { backgroundColor: '#66bb6a', color: '#fff' };
     }
+    // Unknown / unvisited cells
     return { backgroundColor: '#424242', color: '#ddd', border: '1px solid #616161' };
   };
 
@@ -263,8 +264,8 @@ const App: React.FC = () => {
                       }}
                     >
                       {isAgentHere && '🤖'}
-                      {!isAgentHere && cell.hasWumpus && '👹'}
-                      {!isAgentHere && cell.hasPit && '🕳️'}
+                      {!isAgentHere && cell.visited && cell.hasWumpus && '👹'}
+                      {!isAgentHere && cell.visited && cell.hasPit && '🕳️'}
                       <Typography
                         variant="caption"
                         sx={{ position: 'absolute', bottom: 4, right: 6, fontSize: '0.7rem', opacity: 0.75 }}
@@ -326,7 +327,7 @@ const App: React.FC = () => {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Box sx={{ width: 32, height: 32, backgroundColor: '#c62828', borderRadius: '6px' }} />
-                  <Typography>Pit or Wumpus</Typography>
+                  <Typography>Pit or Wumpus (Discovered)</Typography>
                 </Box>
               </Box>
             </CardContent>
